@@ -55,6 +55,7 @@ tests.test_load_vgg(load_vgg, tf)
 
 
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
+    print ("num_classes=",num_classes) #debug
     """
     Create the layers for a fully convolutional network.  Build skip-layers using the vgg layers.
     :param vgg_layer7_out: TF Tensor for VGG Layer 3 output
@@ -64,6 +65,36 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
+    # First: we apply the 1st techinique to add a 1x1 Convolutional layer to the end of the original CNN 
+    # layer8 name = layer_1x1
+    layer_1x1 = tf.layers.conv2d(vgg_layer3_out,num_classes,kernel_size=1,stride=1,padding='same',name='layer_1x1')
+    
+    # Second: we apply transformations to upsample or deconvolute the layers
+    layer9 = tf.layers.conv2d_transpose(layer_1x1_out,num_classes*2,kernel_size=2,stride=2,padding='same',name='layer9')
+    layer10 = tf.layers.conv2d_transpose(layer8,num_classes*4,kernel_size=2,stride=2,padding='same',name='layer10')
+    layer11 = tf.layers.conv2d_transpose(layer9,num_classes*8,kernel_size=2,stride=2,padding='same',name='layer11')    
+    layer12 = tf.layers.conv2d_transpose(layer9,num_classes*8,kernel_size=2,stride=2,padding='same',name='layer11')
+    layer13 = tf.layers.conv2d_transpose(layer9,num_classes*8,kernel_size=2,stride=2,padding='same',name='layer11')
+    
+    #add layer13 and vgg_layer4_out which have the same size
+    skip_layer4 = tf.add(layer13,vgg_layer4_out)
+    
+    layer14 # same size as layer2
+    
+    #add layer14 and vgg_layer3_out which have the same size
+    
+    layer15 # same size as layer1
+    
+    vgg_layer3_out
+    
+    vgg_layer4_out
+    
+    vgg_layer7_out
+    
+    # Second: we apply a transformation to upsample or deconvolute the layers
+    
+    
+    
     return None
 tests.test_layers(layers)
 
