@@ -65,37 +65,33 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
+    # Following same architecture of the paper
     # First: we apply the 1st techinique to add a 1x1 Convolutional layer to the end of the original CNN 
     # layer8 name = layer_1x1
-    layer_1x1 = tf.layers.conv2d(vgg_layer3_out,num_classes,kernel_size=1,stride=1,padding='same',name='layer_1x1')
-    
+    conv_1x1 = tf.layers.conv2d(vgg_layer7_out,num_classes,kernel_size=1,stride=1,padding='same',name='conv_1x1',
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
     # Second: we apply transformations to upsample or deconvolute the layers
-    layer9 = tf.layers.conv2d_transpose(layer_1x1_out,num_classes*2,kernel_size=2,stride=2,padding='same',name='layer9')
-    layer10 = tf.layers.conv2d_transpose(layer8,num_classes*4,kernel_size=2,stride=2,padding='same',name='layer10')
-    layer11 = tf.layers.conv2d_transpose(layer9,num_classes*8,kernel_size=2,stride=2,padding='same',name='layer11')    
-    layer12 = tf.layers.conv2d_transpose(layer9,num_classes*8,kernel_size=2,stride=2,padding='same',name='layer11')
-    layer13 = tf.layers.conv2d_transpose(layer9,num_classes*8,kernel_size=2,stride=2,padding='same',name='layer11')
-    
-    #add layer13 and vgg_layer4_out which have the same size
-    skip_layer4 = tf.add(layer13,vgg_layer4_out)
-    
-    layer14 # same size as layer2
-    
-    #add layer14 and vgg_layer3_out which have the same size
-    
-    layer15 # same size as layer1
-    
-    vgg_layer3_out
-    
-    vgg_layer4_out
-    
-    vgg_layer7_out
-    
-    # Second: we apply a transformation to upsample or deconvolute the layers
-    
-    
-    
-    return None
+    # Upsample by 2
+    updeconv2 = tf.layers.conv2d_transpose(layer_1x1_out,num_classes,kernel_size=4,stride=2,padding='same',name='updeconv2',
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    skip_4 = tf.add(upsampled2,vgg_layer4_out)
+    # Upsample by 2
+    updeconv4 = tf.layers.conv2d_transpose(skip_4,num_classes,kernel_size=4,stride=2,padding='same',name='updeconv4',
+                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    up_layer4= tf.layers.conv2d_transpose(vgg_layer4_out,num_classes,kernel_size=4,stride=2,padding='same',name='up_layer4',
+                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    skip_3 = tf.add(updeconv4,vgg_layer3_out)
+    skip_3_4 = tf.add(skip_3,up_layer4)
+
+    # Upsample by 8
+    updeconv32 = tf.layers.conv2d_transpose(skip_3_4,num_classes,kernel_size=16,stride=8,padding='same',name='updeconv32',
+                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    return updeconv32
+
 tests.test_layers(layers)
 
 
