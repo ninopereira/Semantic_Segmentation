@@ -27,7 +27,7 @@ def load_vgg(sess, vgg_path):
     # TODO: Implement function
     #   Use tf.saved_model.loader.load to load the model and weights
     
-    vgg_tag = 'vgg16'
+    vgg_tag = ['vgg16']
     
     # returns the MetaGraphDef protocol buffer loaded in the provided session. 
     # This can be used to further extract signature-defs, collection-defs, etc.
@@ -68,26 +68,31 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     # Following same architecture of the paper
     # First: we apply the 1st techinique to add a 1x1 Convolutional layer to the end of the original CNN 
     # layer8 name = layer_1x1
-    conv_1x1 = tf.layers.conv2d(vgg_layer7_out,num_classes,kernel_size=1,stride=1,padding='same',name='conv_1x1',
+    conv_1x1 = tf.layers.conv2d(vgg_layer7_out,num_classes,kernel_size=1,strides=1,padding='same',name='conv_1x1',
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     # Second: we apply transformations to upsample or deconvolute the layers
     # Upsample by 2
-    updeconv2 = tf.layers.conv2d_transpose(layer_1x1_out,num_classes,kernel_size=4,stride=2,padding='same',name='updeconv2',
+    updeconv2 = tf.layers.conv2d_transpose(conv_1x1,num_classes,kernel_size=4,strides=2,padding='same',name='updeconv2',
                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
-    skip_4 = tf.add(upsampled2,vgg_layer4_out)
+    layer4_1x1 = tf.layers.conv2d(vgg_layer4_out,num_classes,kernel_size=1,strides=1,padding='same',name='layer4_1x1',
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    
+    skip_4 = tf.add(updeconv2,layer4_1x1)
     # Upsample by 2
-    updeconv4 = tf.layers.conv2d_transpose(skip_4,num_classes,kernel_size=4,stride=2,padding='same',name='updeconv4',
+    updeconv4 = tf.layers.conv2d_transpose(skip_4,num_classes,kernel_size=4,strides=2,padding='same',name='updeconv4',
                                          kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
-    up_layer4= tf.layers.conv2d_transpose(vgg_layer4_out,num_classes,kernel_size=4,stride=2,padding='same',name='up_layer4',
+    layer3_1x1 = tf.layers.conv2d(vgg_layer3_out,num_classes,kernel_size=1,strides=1,padding='same',name='layer3_1x1',
+                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    up_layer4= tf.layers.conv2d_transpose(layer4_1x1,num_classes,kernel_size=4,strides=2,padding='same',name='up_layer4',
                                          kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    skip_3 = tf.add(updeconv4,vgg_layer3_out)
+    skip_3 = tf.add(updeconv4,layer3_1x1)
     skip_3_4 = tf.add(skip_3,up_layer4)
 
     # Upsample by 8
-    updeconv32 = tf.layers.conv2d_transpose(skip_3_4,num_classes,kernel_size=16,stride=8,padding='same',name='updeconv32',
+    updeconv32 = tf.layers.conv2d_transpose(skip_3_4,num_classes,kernel_size=16,strides=8,padding='same',name='updeconv32',
                                          kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     return updeconv32
@@ -107,14 +112,14 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     # TODO: Implement function
 
 
-    labels = tf.reshape(correct_label, (-1, num_classes))
-    logits = tf.reshape(nn_last_layer, (-1, num_classes))
+    my_labels = tf.reshape(correct_label, (-1, num_classes))
+    my_logits = tf.reshape(nn_last_layer, (-1, num_classes))
     # calculate loss
-    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels))
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=my_logits, labels=my_labels))
     # adam optimizer
-    trained = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+    trained = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy_loss)
 
-    return logits, trained, cross_entropy_loss
+    return my_logits, trained, cross_entropy_loss
 
 tests.test_optimize(optimize)
 
