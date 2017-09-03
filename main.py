@@ -140,12 +140,12 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
-    count = 0
+    count = 1
     for epoch in range(epochs):
 
         for (image, my_label) in get_batches_fn(batch_size):
             discard, loss = sess.run([train_op, cross_entropy_loss],
-                 feed_dict={input_image:image, correct_label:my_label, keep_prob:0.8,learning_rate:0.000001})
+                 feed_dict={input_image:image, correct_label:my_label, keep_prob:0.8,learning_rate:0.0001})
         print("Iter=",str(count)," Epoch=", str(epoch), "/", str(epochs), " loss=", str(loss))
         count = count + 1
             
@@ -159,8 +159,8 @@ def run():
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
 
-    epochs = 50   #50
-    batch_size = 30  #10
+    epochs = 20   #50
+    batch_size = 10  #10
 
     learning_rate = tf.placeholder(dtype=tf.float32)
     learning_rate = tf.Variable(0.00001)
