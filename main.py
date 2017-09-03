@@ -51,7 +51,7 @@ def load_vgg(sess, vgg_path):
     return image_input, keep_prob, layer3_out, layer4_out, layer7_out
 
 # perform test to verify load_vgg function implementation
-tests.test_load_vgg(load_vgg, tf)
+#tests.test_load_vgg(load_vgg, tf)
 
 
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
@@ -100,7 +100,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     return updeconv32
 
-tests.test_layers(layers)
+#tests.test_layers(layers)
 
 
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
@@ -122,8 +122,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 
     return my_logits, train_op, cross_entropy_loss
 
-tests.test_optimize(optimize)
-
+#tests.test_optimize(optimize)
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
              correct_label, keep_prob, learning_rate):
@@ -141,18 +140,23 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
-    my_learning_rate = tf.placeholder(dtype=tf.float32)
+    #my_learning_rate = tf.placeholder(dtype=tf.float32)
     my_learning_rate = learning_rate
+
+    #my_keep_prob = tf.placeholder(dtype=tf.float32)
+    my_keep_prob = keep_prob
+
     count = 0
     for epoch in range(epochs):
 
-        for (image, label) in get_batches_fn(batch_size):
-            discard, loss = sess.run([train_op, cross_entropy_loss],feed_dict={input_image: image, correct_label: label, keep_prob: 0.5,learning_rate: 0.0001})    
-            print("Iter=",str(count)," Epoch=", str(epoch), "/", str(epochs), " loss=", str(loss))
-            #print('Epoch={}/{} count={} loss={}'.format(epoch, epochs, count, loss))
-            count = count + 1
+        for (image, my_label) in get_batches_fn(batch_size):
+            discard, loss = sess.run([train_op, cross_entropy_loss],
+                 feed_dict={input_image:image, correct_label:my_label, keep_prob:my_keep_prob,learning_rate:my_learning_rate})
+        print("Iter=",str(count)," Epoch=", str(epoch), "/", str(epochs), " loss=", str(loss))
+        #print('Epoch={}/{} count={} loss={}'.format(epoch, epochs, count, loss))
+        count = count + 1
             
-tests.test_train_nn(train_nn)
+#tests.test_train_nn(train_nn)
 
 
 def run():
@@ -161,13 +165,16 @@ def run():
     data_dir = './data'
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
-    epochs = 2   #50
-    batch_size = 2  #10
-    
-    learning_rate = 0.00001
+
+    epochs = 50   #50
+    batch_size = 30  #10
+
+    learning_rate = tf.placeholder(dtype=tf.float32)
+    learning_rate = tf.Variable(0.00001)
+
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
-
+    correct_label = tf.placeholder(dtype=tf.float32, shape=(None, None, None, num_classes))
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
@@ -185,13 +192,14 @@ def run():
         input_image, keep_prob, vgg_layer3_out, vgg_layer4_out, vgg_layer7_out = load_vgg(sess, vgg_path) #OK
 
         nn_last_layer = layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes)
-        correct_label = tf.placeholder(dtype=tf.float32, shape=(None, None, None, num_classes))
+
         logits, train_op, cross_entropy_loss = optimize(nn_last_layer, correct_label, learning_rate, num_classes)
 
         # TODO: Train NN using the train_nn function
         sess.run(tf.global_variables_initializer())
-        train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
-                 correct_label, my_keep_prob=keep_prob, my_learning_rate=learning_rate)
+        train_nn(sess, epochs, batch_size, get_batches_fn, train_op,
+                 cross_entropy_loss, input_image,
+                 correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
