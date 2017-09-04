@@ -5,6 +5,8 @@
 The aim of this project is to provide scene understanding by labeling each pixel of an image as being road or not road using the Kitty dataset.
 This will enable a self-driving car to determine the free navigable space on the road.
 It requires knowledge of FCNs (Fully Convolutional Networks) to create a semantic segmentation model that classifies each pixel.
+
+## FCNs Vs CNNs
 FCNs allow us to identify where in the image is a given object because, contrary to CNNs, FCNs preserve spacial information.
 The spacial information is preserved by adding skip connections.
 
@@ -28,7 +30,7 @@ We used a pre-trained model for our encoder part.
 In this case we used a pre-trained VGG network.
 We should use skip connections with care. When using VGG-16 as the encoder only the 3rd and 4th pooling layers are tipiclly used for skip connections.
 
-### Bounding Boxes Vs FCNs
+## Bounding Boxes Vs FCNs
 
 Bounding boxes state-of-the-art solutions like YOLO and SSD models are only good for detecting cars, people, traffic lights, but not road or sky which do not fit properly in a box.
 Semantic Segmentation using FCNs assing meaningful information to each individual pixel in the image.
@@ -40,9 +42,9 @@ https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf
 
 ![](paper.png)
 
-Number of epochs used for training: 20
-Number of batches per epoch: 10
-Learning rate: 0.001
+* Number of epochs used for training: 20
+* Number of batches per epoch: 10
+* Learning rate: 0.001
 
 
 ## Instructions for Running on AWS (Amazon Web Services)
