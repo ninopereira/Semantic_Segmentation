@@ -69,34 +69,42 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     # First: we apply the 1st techinique to add a 1x1 Convolutional layer to the end of the original CNN 
     # layer8 name = layer_1x1
     conv_1x1 = tf.layers.conv2d(vgg_layer7_out,num_classes,kernel_size=1,strides=1,padding='same',name='conv_1x1',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     # Second: we apply transformations to upsample or deconvolute the layers
     # Upsample by 2
     updeconv2 = tf.layers.conv2d_transpose(conv_1x1,num_classes,kernel_size=4,strides=2,padding='same',name='updeconv2',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     layer4_1x1 = tf.layers.conv2d(vgg_layer4_out,num_classes,kernel_size=1,strides=1,padding='same',name='layer4_1x1',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     
     skip_4 = tf.add(updeconv2,layer4_1x1)
     # Upsample by 2
     updeconv4 = tf.layers.conv2d_transpose(skip_4,num_classes,kernel_size=4,strides=2,padding='same',name='updeconv4',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
                                          kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     layer3_1x1 = tf.layers.conv2d(vgg_layer3_out,num_classes,kernel_size=1,strides=1,padding='same',name='layer3_1x1',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    #up_layer4= tf.layers.conv2d_transpose(layer4_1x1,num_classes,kernel_size=4,strides=2,padding='same',name='up_layer4',
-#                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    up_layer4= tf.layers.conv2d_transpose(layer4_1x1,num_classes,kernel_size=4,strides=2,padding='same',name='up_layer4',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
+                                         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     skip_3 = tf.add(updeconv4,layer3_1x1)
-    #skip_3_4 = tf.add(skip_3,up_layer4)
+    skip_3_4 = tf.add(skip_3,up_layer4)
 
     # Upsample by 8
-    #updeconv32 = tf.layers.conv2d_transpose(skip_3_4,num_classes,kernel_size=16,strides=8,padding='same',name='updeconv32',
-     #                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    
-    updeconv32 = tf.layers.conv2d_transpose(skip_3,num_classes,kernel_size=16,strides=8,padding='same',name='updeconv32',
+    updeconv32 = tf.layers.conv2d_transpose(skip_3_4,num_classes,kernel_size=16,strides=8,padding='same',name='updeconv32',
+                                        kernel_initializer=tf.truncated_normal_initializer(stddev =.01),
                                          kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    
+    #updeconv32 = tf.layers.conv2d_transpose(skip_3,num_classes,kernel_size=16,strides=8,padding='same',name='updeconv32',
+     #                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     return updeconv32
 
@@ -145,7 +153,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
         for (image, my_label) in get_batches_fn(batch_size):
             discard, loss = sess.run([train_op, cross_entropy_loss],
-                 feed_dict={input_image:image, correct_label:my_label, keep_prob:0.8,learning_rate:0.0001})
+                 feed_dict={input_image:image, correct_label:my_label, keep_prob:0.8,learning_rate:0.001})
         print("Iter=",str(count)," Epoch=", str(epoch), "/", str(epochs), " loss=", str(loss))
         count = count + 1
             
@@ -163,7 +171,7 @@ def run():
     batch_size = 10  #10
 
     learning_rate = tf.placeholder(dtype=tf.float32)
-    learning_rate = tf.Variable(0.00001)
+    learning_rate = tf.Variable(0.0001)
 
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
