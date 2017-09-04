@@ -51,7 +51,7 @@ def load_vgg(sess, vgg_path):
     return image_input, keep_prob, layer3_out, layer4_out, layer7_out
 
 # perform test to verify load_vgg function implementation
-#tests.test_load_vgg(load_vgg, tf)
+tests.test_load_vgg(load_vgg, tf)
 
 
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
@@ -108,7 +108,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     return updeconv32
 
-#tests.test_layers(layers)
+tests.test_layers(layers)
 
 
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
@@ -130,7 +130,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 
     return my_logits, train_op, cross_entropy_loss
 
-#tests.test_optimize(optimize)
+tests.test_optimize(optimize)
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
              correct_label, keep_prob, learning_rate):
@@ -157,7 +157,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         print("Iter=",str(count)," Epoch=", str(epoch), "/", str(epochs), " loss=", str(loss))
         count = count + 1
             
-#tests.test_train_nn(train_nn)
+tests.test_train_nn(train_nn)
 
 
 def run():
